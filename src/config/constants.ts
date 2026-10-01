@@ -12,5 +12,5 @@ export const STAGED_STORE_KEY = "git-panel.staged"
 
 export const LIST_NAV_MODE = "git-panel-list"
 
-export const FILE_ROW_FIXED_WIDTH = 1 + 3 + 5 + 10
+export const FILE_ROW_BADGE_WIDTH = 3
 export const EVENT_REFRESH_DEBOUNCE_MS = 2000

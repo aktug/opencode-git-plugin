@@ -1,3 +1,5 @@
+import type { Context } from "@opencode/plugin/tui/context"
+
 export type RenderNode = {
   parent?: RenderNode | null
   width: number
@@ -57,3 +59,5 @@ export type LayoutResizeEmitter = {
   on(event: "resize", listener: () => void): void
   off(event: "resize", listener: () => void): void
 }
+
+export type Theme = Context["theme"]

@@ -106,6 +106,8 @@ npm pack --dry-run
 
 The package exposes only the `./tui` export (`tui.ts` at the package root, which re-exports `src/tui.tsx`). Local directory plugins are resolved as `<dir>/tui`, published packages through the `./tui` export.
 
+Any module that imports runtime values from `solid-js` (`createSignal`, `createMemo`, `onCleanup`, …) must be a `.tsx` file. OpenCode only redirects `solid-js` to its own runtime in `.jsx`/`.tsx` files; in a `.ts` file the import loads a second Solid instance and the UI stops updating. A test enforces this.
+
 Before publishing, test the packed tarball rather than the working directory:
 
 ```sh

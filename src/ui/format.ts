@@ -1,21 +1,42 @@
 import type { Context } from "@opencode/plugin/tui/context"
 import type { ChangeFile, DiffLineKind } from "../types"
-import { FILE_ROW_FIXED_WIDTH } from "../config"
+import { FILE_ROW_BADGE_WIDTH } from "../config"
 
 type Theme = Context["theme"]
 type ThemeColor = Theme["text"]["base"]
 
-export function truncatePath(path: string, max = 38): string {
-  if (path.length <= max) return path
-  return `...${path.slice(path.length - (max - 3))}`
+const ELLIPSIS = "..."
+const runtime = globalThis as { Bun?: { stringWidth?: (text: string) => number } }
+const graphemes = new Intl.Segmenter(undefined, { granularity: "grapheme" })
+
+export function displayWidth(text: string): number {
+  return runtime.Bun?.stringWidth?.(text) ?? [...text].length
+}
+
+export function truncatePath(path: string, max: number): string {
+  if (displayWidth(path) <= max) return path
+  const budget = max - ELLIPSIS.length
+  if (budget <= 0) return ELLIPSIS.slice(0, Math.max(0, max))
+  const parts = Array.from(graphemes.segment(path), (s) => s.segment)
+  let width = 0
+  let start = parts.length
+  for (let i = parts.length - 1; i >= 0; i--) {
+    const w = displayWidth(parts[i])
+    if (width + w > budget) break
+    width += w
+    start = i
+  }
+  return ELLIPSIS + parts.slice(start).join("")
 }
 
 export function maxTextWidth(available: number, reserved: number): number {
   return Math.max(8, available - reserved)
 }
 
-export function filePathMaxWidth(sidebarWidth: number): number {
-  return maxTextWidth(sidebarWidth, FILE_ROW_FIXED_WIDTH)
+export function filePathMaxWidth(rowWidth: number, row: { additions: number; deletions: number }): number {
+  const gaps = 4
+  const fixed = FILE_ROW_BADGE_WIDTH + displayWidth(`+${row.additions}`) + displayWidth(`-${row.deletions}`)
+  return maxTextWidth(rowWidth, fixed + gaps)
 }
 
 export function friendlyError(e: unknown): string {
