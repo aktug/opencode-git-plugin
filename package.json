@@ -1,23 +1,24 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
   "name": "opencode-git-plugin",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "OpenCode v2 TUI sidebar plugin listing git working-copy changes with diff preview",
   "type": "module",
   "exports": {
-    "./tui": "./tui.ts"
+    "./tui": "./dist/tui.js"
   },
   "files": [
-    "tui.ts",
-    "src",
+    "dist",
     "docs",
     "README.md",
     "LICENSE"
   ],
   "scripts": {
+    "build": "bun run scripts/build.ts",
     "typecheck": "tsc --noEmit",
     "test": "bun test",
     "check": "bun run typecheck && bun test",
+    "prepack": "bun run build",
     "prepublishOnly": "bun run check"
   },
   "dependencies": {

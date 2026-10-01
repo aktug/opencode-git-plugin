@@ -118,12 +118,15 @@ Do not add the plugin to `opencode.json(c)`; that file is for server plugins and
 ```sh
 bun install
 bun run check
+bun run build
 npm pack --dry-run
 ```
 
-The package exposes only the `./tui` export (`tui.ts` at the package root, which re-exports `src/tui.tsx`). Local directory plugins are resolved as `<dir>/tui`, published packages through the `./tui` export.
+The published package exposes `./tui` as `dist/tui.js`, compiled by `bun run build` with the OpenTUI Solid transform. OpenCode does not compile JSX inside `node_modules`, so shipping raw `.tsx` makes the panel fail to render once installed from npm. `npm pack` and `npm publish` run the build automatically.
 
-Any module that imports runtime values from `solid-js` (`createSignal`, `createMemo`, `onCleanup`, …) must be a `.tsx` file. OpenCode only redirects `solid-js` to its own runtime in `.jsx`/`.tsx` files; in a `.ts` file the import loads a second Solid instance and the UI stops updating. A test enforces this.
+A local directory plugin is resolved as `<dir>/tui`, so local development loads `tui.ts` at the repository root, which re-exports `src/tui.tsx` and is compiled by OpenCode on the fly.
+
+Any module that imports runtime values from `solid-js` (`createSignal`, `createMemo`, `onCleanup`, …) must be a `.tsx` file. For local plugins OpenCode only applies its Solid transform to `.jsx`/`.tsx` files; in a `.ts` file the import loads a second Solid instance and the UI stops updating. A test enforces this.
 
 Before publishing, test the packed tarball rather than the working directory:
 
