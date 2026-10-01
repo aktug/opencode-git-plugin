@@ -43,6 +43,23 @@ Restart the OpenCode TUI after installation. Verify installation with:
 opencode plugin list
 ```
 
+### Update
+
+```sh
+opencode plugin check
+opencode plugin update
+```
+
+`check` reports whether a newer version is available; `update` installs it. Restart the TUI afterwards.
+
+### Uninstall
+
+```sh
+opencode plugin remove opencode-git-plugin
+```
+
+### Local development
+
 For local development, add the package directory to `~/.config/opencode/cli.json`:
 
 ```jsonc
