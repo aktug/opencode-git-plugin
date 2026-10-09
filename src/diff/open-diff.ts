@@ -1,11 +1,36 @@
 import type { Context } from "@opencode/plugin/tui/context"
 import { DIFF_PANEL_NAME, MAX_DIFF_LINES } from "../config"
-import { parseDiff } from "../git"
+import { parseDiff, shellQuote, type GitRunner } from "../git"
 import { useDiffStore } from "../state"
 import { friendlyError } from "../ui"
 import type { ChangeFile } from "../types"
 
-export function createDiffOpener(ctx: Context, location: () => { directory: string }) {
+async function gitFallbackPatch(git: GitRunner, file: string): Promise<string | undefined> {
+  const q = shellQuote(file)
+  return git.enqueue(async () => {
+    const cached = await git.run(`diff --cached --no-renames -U3 -- ${q}`)
+    const worktree = await git.run(`diff --no-renames -U3 -- ${q}`)
+    const combined = [cached.output, worktree.output].filter((s) => s.trim() !== "").join("\n")
+    if (combined.trim() !== "") return combined
+    const untracked = await git.run(`diff --no-index --no-renames -U3 -- /dev/null ${q}`)
+    return untracked.output.trim() !== "" ? untracked.output : undefined
+  })
+}
+
+async function vcsPatch(ctx: Context, location: { directory: string }, file: string): Promise<string | undefined> {
+  try {
+    const res = await ctx.client.vcs.diff({ location, mode: "working", context: 3 })
+    return res.data.find((d: { file: string }) => d.file === file)?.patch
+  } catch {
+    return undefined
+  }
+}
+
+export function createDiffOpener(
+  ctx: Context,
+  location: () => { directory: string },
+  git: GitRunner,
+) {
   const [diffView, setDiffState] = useDiffStore(ctx)
   let activeRequestId = 0
 
@@ -28,14 +53,17 @@ export function createDiffOpener(ctx: Context, location: () => { directory: stri
     })
     ctx.ui.panel.open(DIFF_PANEL_NAME, { presentation: "panel" })
     try {
-      const res = await ctx.client.vcs.diff({ location: location(), mode: "working", context: 3 })
+      let patch = await vcsPatch(ctx, location(), f.file)
       if (isStale()) return
-      const entry = res.data.find((d: { file: string }) => d.file === f.file)
-      const parsed = entry ? parseDiff(entry.patch) : []
+      if (patch == null) {
+        patch = await gitFallbackPatch(git, f.file).catch(() => undefined)
+        if (isStale()) return
+      }
+      const parsed = patch ? parseDiff(patch) : []
       setDiffState((draft) => {
         draft.loading = false
-        draft.patch = entry?.patch ?? ""
-        if (!entry) {
+        draft.patch = patch ?? ""
+        if (!patch) {
           draft.message = "No diff available"
         } else if (parsed.length === 0) {
           draft.message = "No visible changes (empty or binary file)"

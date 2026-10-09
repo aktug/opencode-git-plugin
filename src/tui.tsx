@@ -3,7 +3,15 @@ import { Plugin } from "@opencode/plugin/tui"
 import { DiffPanel } from "./diff"
 import { GitChangesView } from "./sidebar"
 
-export { parseDiff, parseStagedPorcelain } from "./git"
+export {
+  buildFallbackFiles,
+  parseDiff,
+  parseNumstat,
+  parsePorcelainRecords,
+  parseStagedPorcelain,
+  porcelainChangeStatus,
+} from "./git"
+export { buildFileTree } from "./ui"
 
 export default Plugin.define({
   id: "git-panel.cli",

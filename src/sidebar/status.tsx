@@ -7,7 +7,7 @@ export function SidebarStatus(props: {
   loading: boolean
   error: string | undefined
   hasFiles: boolean
-  branch: string
+  hasHead: boolean
 }) {
   const ctx = props.ctx
   return (
@@ -18,10 +18,10 @@ export function SidebarStatus(props: {
       <Show when={!props.loading && props.error}>
         <text fg={ctx.theme.text.feedback.error.base}>{props.error}</text>
       </Show>
-      <Show when={!props.loading && !props.error && !props.hasFiles && !props.branch}>
+      <Show when={!props.loading && !props.error && !props.hasFiles && !props.hasHead}>
         <text fg={ctx.theme.text.muted}>Empty repo — no commits yet</text>
       </Show>
-      <Show when={!props.loading && !props.error && !props.hasFiles && !!props.branch}>
+      <Show when={!props.loading && !props.error && !props.hasFiles && props.hasHead}>
         <text fg={ctx.theme.text.muted}>Working tree clean</text>
       </Show>
     </>

@@ -3,6 +3,7 @@ import { createEffect, createSignal, onCleanup, Show } from "solid-js"
 import type { Context } from "@opencode/plugin/tui/context"
 import { createDiffOpener } from "../diff"
 import { createGitRunner } from "../git"
+import { folderTree } from "../config"
 import { setDiffClosedHandler, useDiffStore } from "../state"
 import type { ChangeFile, LayoutResizeEmitter, RenderNode } from "../types"
 import { FileList } from "./file-list"
@@ -17,6 +18,7 @@ import { createWorkingCopy } from "./working-copy"
 export function GitChangesView(props: { ctx: Context }) {
   const { ctx } = props
   const [sidebarWidth, setSidebarWidth] = createSignal(46)
+  const [collapsedDirs, setCollapsedDirs] = createSignal<ReadonlySet<string>>(new Set())
   const [diffView] = useDiffStore(ctx)
   let sidebarNode: RenderNode | undefined
 
@@ -26,8 +28,8 @@ export function GitChangesView(props: { ctx: Context }) {
   }
 
   const git = createGitRunner(ctx, () => currentLocation().directory)
-  const openDiff = createDiffOpener(ctx, currentLocation)
-  const workingCopy = createWorkingCopy(ctx, currentLocation, (count) => {
+  const openDiff = createDiffOpener(ctx, currentLocation, git)
+  const workingCopy = createWorkingCopy(ctx, currentLocation, git, (count) => {
     nav.clampSelection(count)
     void staging.scheduleRefresh()
   })
@@ -46,6 +48,25 @@ export function GitChangesView(props: { ctx: Context }) {
     nav.setSelected(index)
     if (nav.stageMode()) staging.toggle(f.file)
     else void openDiff(f).catch(() => {})
+  }
+  const toggleCollapsed = (dirPath: string) =>
+    setCollapsedDirs((prev) => {
+      const next = new Set(prev)
+      if (!next.delete(dirPath)) next.add(dirPath)
+      return next
+    })
+  const selectDir = (dirPath: string) => {
+    if (!nav.stageMode()) {
+      toggleCollapsed(dirPath)
+      return
+    }
+    const contained = workingCopy
+      .files()
+      .map((f, i) => ({ f, i }))
+      .filter(({ f }) => f.file.startsWith(dirPath))
+    if (contained.length === 0) return
+    staging.toggleAll(contained.map(({ f }) => f.file))
+    nav.setSelected(contained[0].i)
   }
 
   void workingCopy.refresh().catch(() => {})
@@ -118,7 +139,7 @@ export function GitChangesView(props: { ctx: Context }) {
         loading={workingCopy.loading()}
         error={workingCopy.error()}
         hasFiles={hasFiles()}
-        branch={workingCopy.branch()}
+        hasHead={workingCopy.hasHead()}
       />
       <Show when={ready() && hasFiles()}>
         <FileList
@@ -128,7 +149,10 @@ export function GitChangesView(props: { ctx: Context }) {
           selected={nav.selected()}
           navMode={nav.navMode()}
           width={sidebarWidth()}
+          treeStyle={folderTree(ctx)}
+          collapsed={collapsedDirs()}
           onSelect={selectFile}
+          onSelectDir={selectDir}
         />
       </Show>
     </>
