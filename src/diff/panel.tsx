@@ -37,12 +37,19 @@ export function DiffPanel(props: { ctx: Context; input: PanelInput }) {
     }
   })
 
+  // Focus the panel when a different file opens, but never fight the user for
+  // focus afterwards. The host focuses the panel on mount and hands focus back
+  // when the user moves to the prompt; re-focusing on every `focused` change
+  // traps input in the diff panel and makes the prompt impossible to use.
+  let lastFocusedFile: string | undefined
   createEffect(() => {
-    if (input().name === DIFF_PANEL_NAME && !input().focused) {
-      try {
-        input().focus()
-      } catch {
-      }
+    const file = diffState.file
+    if (file === lastFocusedFile) return
+    lastFocusedFile = file
+    if (input().name !== DIFF_PANEL_NAME) return
+    try {
+      input().focus()
+    } catch {
     }
   })
 
