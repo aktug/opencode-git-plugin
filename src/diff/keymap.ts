@@ -22,7 +22,9 @@ export function registerDiffKeymap(
     const inSyntax = deps.syntaxActive()
     return {
       mode: "global",
-      priority: 20,
+      // Let modal dialog bindings take precedence over panel shortcuts. The
+      // host already scopes this layer to panel focus, so no elevated priority
+      // is needed to override the session prompt.
       enabled: () => deps.input().name === DIFF_PANEL_NAME,
       bindings: [
         "git-panel.diff-search",
