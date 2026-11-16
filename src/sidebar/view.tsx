@@ -3,7 +3,7 @@ import { createEffect, createSignal, onCleanup, Show } from "solid-js"
 import type { Context } from "@opencode/plugin/tui/context"
 import { createDiffOpener } from "../diff"
 import { createGitRunner } from "../git"
-import { folderTree } from "../config"
+import { folderTree, maxRows } from "../config"
 import { setDiffClosedHandler, useDiffStore } from "../state"
 import type { ChangeFile, LayoutResizeEmitter, RenderNode } from "../types"
 import { FileList } from "./file-list"
@@ -124,6 +124,7 @@ export function GitChangesView(props: { ctx: Context }) {
       <SidebarHeader
         ctx={ctx}
         branch={workingCopy.branch()}
+        width={sidebarWidth()}
         fileCount={workingCopy.files().length}
         ready={ready()}
         additions={workingCopy.additions()}
@@ -149,6 +150,7 @@ export function GitChangesView(props: { ctx: Context }) {
           selected={nav.selected()}
           navMode={nav.navMode()}
           width={sidebarWidth()}
+          maxRows={maxRows(ctx)}
           treeStyle={folderTree(ctx)}
           collapsed={collapsedDirs()}
           onSelect={selectFile}

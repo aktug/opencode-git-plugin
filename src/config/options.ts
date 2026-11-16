@@ -15,3 +15,9 @@ export function folderTree(ctx: Context): TreeStyle {
   const raw = ctx.options.folderTree
   return (TREE_STYLES as readonly unknown[]).includes(raw) ? (raw as TreeStyle) : "none"
 }
+
+export function maxRows(ctx: Context): number {
+  const raw = ctx.options.maxRows
+  if (typeof raw !== "number" || !Number.isFinite(raw)) return 8
+  return Math.max(1, Math.min(50, Math.floor(raw)))
+}

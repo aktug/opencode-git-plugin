@@ -83,6 +83,7 @@ Do not add the plugin to `opencode.json(c)`; that file is for server plugins and
 | --- | --- | --- | --- |
 | `intervalMs` | `number` | `4000` | Refresh interval in milliseconds; values below `1000` are clamped. |
 | `folderTree` | `string` | `"none"` | File list style: `"none"` (full paths), `"comfortable"` (indented tree, 2 cols/level), `"compact"` (tree, 1 col/level), or `"minimal"` (plain indentation). |
+| `maxRows` | `number` | `8` | Maximum visible file/tree rows; 1–50. Mouse wheel or the `↑/↓ N more` rows scroll by a page. Keyboard selection scrolls into view. |
 
 ## Usage
 
