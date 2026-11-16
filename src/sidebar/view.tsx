@@ -161,25 +161,8 @@ export function GitChangesView(props: { ctx: Context }) {
   )
 
   return (
-    <Show
-      when={nav.navMode()}
-      fallback={
-        <box flexDirection="column" gap={1} ref={setSidebarRef}>
-          {sidebarBody}
-        </box>
-      }
-    >
-      <box
-        flexDirection="column"
-        gap={1}
-        border={["top", "bottom"]}
-        borderStyle="rounded"
-        borderColor={ctx.theme.text.feedback.warning.base}
-        focusedBorderColor={ctx.theme.text.feedback.warning.base}
-        ref={setSidebarRef}
-      >
-        {sidebarBody}
-      </box>
-    </Show>
+    <box flexDirection="column" gap={1} ref={setSidebarRef}>
+      {sidebarBody}
+    </box>
   )
 }
