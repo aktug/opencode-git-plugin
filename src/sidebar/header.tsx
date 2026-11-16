@@ -1,10 +1,12 @@
 /** @jsxImportSource @opentui/solid */
 import { Show } from "solid-js"
 import type { Context } from "@opencode/plugin/tui/context"
+import { displayWidth, truncatePath } from "../ui"
 
 export function SidebarHeader(props: {
   ctx: Context
   branch: string
+  width: number
   fileCount: number
   ready: boolean
   additions: number
@@ -18,22 +20,29 @@ export function SidebarHeader(props: {
   const ctx = props.ctx
   return (
     <box flexDirection="column" gap={0}>
-      <box flexDirection="row" gap={1}>
-        <text fg={ctx.theme.text.base}>
+      <box flexDirection="row">
+        <text fg={ctx.theme.text.base} wrapMode="none">
           <b>Git Panel</b>
         </text>
-        <box flexGrow={1} />
-        <Show when={props.branch && props.fileCount > 0}>
-          <text fg={ctx.theme.text.muted} onMouseUp={() => props.onBranchClick()}>
-            ▶ {props.branch}{" "}
-          </text>
-          <text fg={ctx.theme.text.base}>({props.fileCount})</text>
-        </Show>
-        <Show when={props.ready && props.fileCount > 0}>
-          <text fg={ctx.theme.diff.text.added}>+{props.additions}</text>
-          <text fg={ctx.theme.diff.text.removed}>-{props.deletions}</text>
-        </Show>
       </box>
+      <text fg={ctx.theme.border.base} wrapMode="none">
+        {"─".repeat(Math.max(1, props.width - 1))}
+      </text>
+      <Show when={props.branch && props.fileCount > 0}>
+        <box flexDirection="row" gap={1} onMouseUp={() => props.onBranchClick()}>
+          <text fg={ctx.theme.text.muted} wrapMode="none">
+            ▶ {truncatePath(props.branch, Math.max(1, props.width - displayWidth(`▶  (${props.fileCount})`) - 1))}
+          </text>
+          <text fg={ctx.theme.text.base} wrapMode="none">({props.fileCount})</text>
+        </box>
+      </Show>
+      <Show when={props.ready && props.fileCount > 0}>
+        <box flexDirection="row" gap={1}>
+          <box flexGrow={1} />
+          <text fg={ctx.theme.diff.text.added} wrapMode="none">+{props.additions}</text>
+          <text fg={ctx.theme.diff.text.removed} wrapMode="none">-{props.deletions}</text>
+        </box>
+      </Show>
       <Show when={props.ready && props.fileCount > 0 && props.navMode}>
         <box flexDirection="row" gap={1}>
           <box flexGrow={1} />

@@ -8,12 +8,29 @@ import plugin, {
   parseStagedPorcelain,
   porcelainChangeStatus,
 } from "../src/tui"
-import { displayWidth, filePathMaxWidth, truncatePath } from "../src/ui"
+import { displayWidth, filePathMaxWidth, revealRow, rowWindow, truncatePath } from "../src/ui"
 import { shouldStageAll, buildStageArgs } from "../src/sidebar/staging"
 
 describe("TUI plugin", () => {
   test("exports the expected plugin id", () => {
     expect(plugin.id).toBe("git-panel.cli")
+  })
+})
+
+describe("sidebar file window", () => {
+  test("limits rows and reports how many are above and below", () => {
+    expect(rowWindow(13, 0, 8)).toEqual({ start: 0, end: 8, above: 0, below: 5 })
+    expect(rowWindow(13, 8, 8)).toEqual({ start: 5, end: 13, above: 5, below: 0 })
+    expect(rowWindow(4, 0, 8)).toEqual({ start: 0, end: 4, above: 0, below: 0 })
+    expect(rowWindow(4, 3, 8)).toEqual({ start: 0, end: 4, above: 0, below: 0 })
+  })
+
+  test("keeps keyboard selection visible without undoing manual scrolling", () => {
+    expect(revealRow(9, 0, 13, 8)).toBe(2)
+    expect(revealRow(1, 5, 13, 8)).toBe(1)
+    expect(revealRow(6, 2, 13, 8)).toBe(2)
+    expect(revealRow(-1, 5, 13, 8)).toBe(5)
+    expect(revealRow(0, 5, 4, 8)).toBe(0)
   })
 })
 
